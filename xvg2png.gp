@@ -80,7 +80,12 @@ set datafile commentschars "#@&" # for xvg
 
 set rmargin at screen 0.95
 
-set output filename.'.png'
+if (exists("output")) {
+  set output output.'.png'
+} else {
+  set output filename.'.png'
+}
+
 set xlabel xlab
 set ylabel ylab
 if (xsci==1) set format x '%.2t.10^{%S}'
