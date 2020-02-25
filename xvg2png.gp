@@ -97,10 +97,31 @@ if (numfiles==1) {
 
   if (constfit==1) {
     c(x) = c1
-    if ( exists("fitmin") &&  exists("fitmax")) { fit [fitmin:fitnmax] c(x) filename.'.xvg' u 1:2 via c1}
-    if ( exists("fitmin") && !exists("fitmax")) { fit [fitmin:] c(x) filename.'.xvg' u 1:2 via c1}
-    if (!exists("fitmin") &&  exists("fitmax")) { fit [:fitnmax] c(x) filename.'.xvg' u 1:2 via c1}
-    if (!exists("fitmin") && !exists("fitmax")) { fit c(x) filename.'.xvg' u 1:2 via c1}
+    if ( exists("fitmin") &&  exists("fitmax")) { 
+      fit [fitmin:fitnmax] c(x) filename.'.xvg' u 1:2 via c1
+      fit(x) = (x > fitmin ?? x < fitmax) ? c1 : 1/0
+      fit_perr(x) = (x > fitmin ?? x < fitmax) ? c1+c1_err : 1/0
+      fit_merr(x) = (x > fitmin ?? x < fitmax) ? c1-c1_err : 1/0
+    }
+    if ( exists("fitmin") && !exists("fitmax")) { 
+      fit [fitmin:] c(x) filename.'.xvg' u 1:2 via c1
+      fit(x) = (x > fitmin) ? c1 : 1/0
+      fit_perr(x) = (x > fitmin) ? c1+c1_err : 1/0
+      fit_merr(x) = (x > fitmin) ? c1-c1_err : 1/0
+    }
+    if (!exists("fitmin") &&  exists("fitmax")) { 
+      fit [:fitnmax] c(x) filename.'.xvg' u 1:2 via c1
+      fit(x) = (x < fitmax) ? c1 : 1/0
+      fit_perr(x) = (x < fitmax) ? c1+c1_err : 1/0
+      fit_merr(x) = (x < fitmax) ? c1-c1_err : 1/0
+    }
+    if (!exists("fitmin") && !exists("fitmax")) { 
+      fit c(x) filename.'.xvg' u 1:2 via c1
+      fit(x) = c1
+      fit_perr(x) = c1+c1_err
+      fit_merr(x) = c1-c1_err
+    }
+
   }
 
   plot filename.'.xvg' using 1:2 with lines lw 2 notitle
@@ -118,19 +139,11 @@ if (numfiles==1) {
   if (constfit==1) {
     set yrange restore
     set xrange restore
-    plot c1 t 'fit' w l ls 10
-    if ( exists("fitmin") &&  exists("fitmax")) { plot [fitmin:fitnmax] c1 t 'fit' w l ls 10 }
-    if ( exists("fitmin") && !exists("fitmax")) { plot [fitmin:] c1 t 'fit' w l ls 10 }
-    if (!exists("fitmin") &&  exists("fitmax")) { plot [:fitnmax] c1 t 'fit' w l ls 10 }
-    if (!exists("fitmin") && !exists("fitmax")) { plot c1 t 'fit' w l ls 10 }
+    plot fit(x) t 'fit' w l ls 10
     set termoption dashed
-    plot c1+c1_err w l ls 10 notitle
-    plot c1-c1_err w l ls 10 notitle
-    if ( exists("fitmin") &&  exists("fitmax")) { plot [fitmin:fitnmax] c1+c1_err t 'fit' w l ls 10; plot [fitmin:fitnmax] c1-c1_err t 'fit' w l ls 10 }
-    if ( exists("fitmin") && !exists("fitmax")) { plot [fitmin:] c1+c1_err t 'fit' w l ls 10; plot [fitmin:] c1-c1_err t 'fit' w l ls 10 }
-    if (!exists("fitmin") &&  exists("fitmax")) { plot [:fitnmax] c1+c1_err t 'fit' w l ls 10; plot [:fitnmax] c1-c1_err t 'fit' w l ls 10 }
-    if (!exists("fitmin") && !exists("fitmax")) { plot c1+c1_err t 'fit' w l ls 10; plot c1-c1_err t 'fit' w l ls 10 }
+    plot fit_merr(x) w l ls 10 notitle
     set label 1 sprintf('avg = (%4.2f +/- %4.2f)',c1,c1_err) at graph 0.3,0.1
+    plot fit_perr(x) w l ls 10 notitle
   }
 
 }
